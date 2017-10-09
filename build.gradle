@@ -1,0 +1,60 @@
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+version = '1.0'
+
+ext {
+  vertxVersion = "3.4.1"
+}
+if (JavaVersion.current().isJava8Compatible()) {
+    allprojects {
+      tasks.withType(Javadoc) {
+        options.addStringOption('Xdoclint:none', '-quiet')
+      }
+    }
+  }
+  
+  
+task fatJar(type: Jar) {
+	
+	exclude 'META-INF/*.RSA', 'META-INF/*.SF','META-INF/*.DSA', 'META-INF/LICENSE*.txt', 'META-INF/NOTICE.txt' 
+	
+	manifest {
+        attributes 'Implementation-Title': 'Book Collection MVC',
+        	'Implementation-Version': version,
+        	'Main-Class': 'com.xoanon.es.sql.ESSqlRestConnector'
+    }
+    baseName = project.name
+    from { configurations.compile.collect { it.isDirectory() ? it : zipTree(it) } }
+    with jar
+}
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.allSource
+}
+task javadocJar(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    from javadoc.destinationDir
+}
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+	testCompile "junit:junit:4.+"
+	compile("io.vertx:vertx-core:${vertxVersion}")
+	compile("io.vertx:vertx-web:${vertxVersion}")
+  	compile("io.vertx:vertx-jdbc-client:${vertxVersion}")
+  	compileOnly("io.vertx:vertx-codegen:${vertxVersion}")
+  	compile 'mysql:mysql-connector-java:6.0.5'
+	compile "com.typesafe:config:1.3.1"
+	testCompile("io.vertx:vertx-unit:${vertxVersion}")
+}
+
+test {
+    systemProperties 'property': 'value'
+}
