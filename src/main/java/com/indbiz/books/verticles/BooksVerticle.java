@@ -69,6 +69,10 @@ public class BooksVerticle extends AbstractVerticle {
 		router.route().handler(CorsHandler.create("*").allowedHeaders(allowHeaders).allowedMethods(allowMethods));
 
 		// routes
+		router.route("/").handler(routingContext -> {
+			HttpServerResponse response = routingContext.response();
+			response.putHeader("content-type", "text/html").sendFile("assets/welcome.html");
+		});
 		router.route("/ui/*").handler(StaticHandler.create("assets"));
 		router.get(APIConstants.API_GET).handler(this::getBook);
 		router.get(APIConstants.API_LIST_ALL).handler(this::getAllBooks);
@@ -98,8 +102,8 @@ public class BooksVerticle extends AbstractVerticle {
 	private void createBook(RoutingContext context) {
 		try {
 			final Books book = wrapObject(mapper.readValue(context.getBodyAsString(), Books.class));
-			final String encoded = Json.encodePrettily(book);
-
+			final String encoded = mapper.writeValueAsString(Json.encodePrettily(book));
+			LOGGER.info("Book to be Added : " + book);
 			books.insert(book).setHandler(resultHandler(context, res -> {
 				if (res) {
 					context.response().setStatusCode(201).putHeader("content-type", "application/json").end(encoded);
@@ -118,12 +122,13 @@ public class BooksVerticle extends AbstractVerticle {
 			sendError(400, context.response());
 			return;
 		}
-
+		LOGGER.info("Requested book id: " + bookId);
 		books.getCertain(bookId).setHandler(resultHandler(context, res -> {
 			if (!res.isPresent())
 				notFound(context);
 			else {
 				final String encoded = Json.encodePrettily(res.get());
+				LOGGER.info("Book found - " + encoded);
 				context.response().putHeader("content-type", "application/json").end(encoded);
 			}
 		}));
@@ -144,6 +149,7 @@ public class BooksVerticle extends AbstractVerticle {
 		try {
 			int bookId = Integer.parseInt(context.request().getParam("id"));
 			final Books updatedBook = mapper.readValue(context.getBodyAsString(), Books.class);
+			LOGGER.info("Requested book id: " + bookId);
 			// handle error
 			if (bookId == 0) {
 				sendError(400, context.response());
@@ -154,6 +160,7 @@ public class BooksVerticle extends AbstractVerticle {
 					notFound(context);
 				else {
 					final String encoded = Json.encodePrettily(res);
+					LOGGER.info("Updated book details - " + encoded);
 					context.response().putHeader("content-type", "application/json").end(encoded);
 				}
 			}));
@@ -178,6 +185,7 @@ public class BooksVerticle extends AbstractVerticle {
 
 	private void deleteBook(RoutingContext context) {
 		int bookId = Integer.parseInt(context.request().getParam("id"));
+		LOGGER.info("Book id to be deleted: " + bookId);
 		books.delete(bookId).setHandler(deleteResultHandler(context));
 	}
 

@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>My Whisky Collection</title>
+    <title>My Book Collection</title>
 
     <script src="//code.jquery.com/jquery-1.11.3.min.js"></script>
     <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.5/css/bootstrap.min.css">
@@ -11,15 +11,14 @@
 <body>
 <div class="container" role="main">
     <div class="jumbotron">
-        <h1>My Whisky Collection</h1>
-
-        <p>Just an example of simple CRUD application developed using Vert.x and Vertx Web.</p>
+        <h1>Book Collection </h1>
+        <p>Just an example of simple CRUD application developed using Vert.x Framework</p>
     </div>
     <div class="page-header">
-        <h1>My Whiskies</h1>
+        <h1>My Books</h1>
         <button class="pull-right btn btn-primary product-add" data-action="add" data-toggle="modal"
                 data-target="#productModal">
-            <span class="glyphicon glyphicon-plus"></span> Add a new bottle
+            <span class="glyphicon glyphicon-plus"></span> Add a new book
         </button>
         <div class="row">
             <div class="col-md-12">
@@ -28,7 +27,9 @@
                     <tr>
                         <th>#</th>
                         <th>Name</th>
-                        <th>Origin</th>
+                        <th>Author</th>
+                        <th>Genre</th>
+                        <th>Status</th>
                         <th>Actions</th>
                     </tr>
                     </thead>
@@ -44,10 +45,12 @@
     $(function () {
         load();
         initModal();
+        create("I Do What I Do", "Raghuram Rajan", "Non-Fiction, Economics", "Bought, yet to read");
+        create("Freedom at Midnight", "Larry Collins and Dominique Lapierre", "Non-Fiction, History", "Currently reading");
     });
 
-    function create(name, origin) {
-        $.post("/api/whiskies", JSON.stringify({name: name, origin: origin}), function () {
+    function create(name, author, genre, status) {
+        $.post("/api/books", JSON.stringify({name: name, author: author, genre: genre, status:status}), function () {
             load();
         }, "json");
     }
@@ -55,17 +58,17 @@
     function remove(id) {
         $.ajax({
             method: "DELETE",
-            url: "/api/whiskies/" + id
+            url: "/api/books/" + id
         }).done(function () {
             load();
         });
     }
 
-    function update(id, name, origin) {
+    function update(id, name, author, genre, status) {
         $.ajax({
-            method: "PUT",
-            url: "/api/whiskies/" + id,
-            data: JSON.stringify({name: name, origin: origin})
+            method: "PATCH",
+            url: "/api/books/" + id,
+            data: JSON.stringify({name: name, author: author, genre: genre, status:status})
         }).done(function () {
             load();
         });
@@ -73,15 +76,17 @@
 
     function load() {
         $("#content").children().remove();
-        $.getJSON("/api/whiskies", function (data) {
+        $.getJSON("/api/books", function (data) {
             $.each(data, function (key, val) {
-                $("<tr><td>" + val.id + "</td><td>" + val.name + "</td><td>" + val.origin + "</td>" +
+                $("<tr><td>" + val.id + "</td><td>" + val.name + "</td><td>" + val.author + "</td><td>" + val.genre + "</td><td>" + val.status + "</td><td>" +
                         "<td>" +
                         "<button data-action='edit' class='btn btn-primary btn-sm product-edit' " +
                         "data-toggle='modal' " +
                         "data-target='#productModal' " +
                         "data-name='" + val.name + "' " +
-                        "data-origin='" + val.origin + "' " +
+                        "data-author='" + val.author + "' " +
+                        "data-genre='" + val.genre + "' " +
+                        "data-status='" + val.status + "' " +
                         "data-id='" + val.id + "'>" +
                         "<span class='glyphicon glyphicon-pencil'></span>" +
                         "</button>" +
@@ -112,19 +117,23 @@
             productAction.unbind();
             var modal = $(this);
             if (action === "add") {
-                modal.find('.modal-title').text("Add a bottle");
+                modal.find('.modal-title').text("Add a Book");
                 modal.find('#product-name').val("");
-                modal.find('#product-origin').val("");
+                modal.find('#product-author').val("");
+                modal.find('#product-genre').val("");
+                modal.find('#product-status').val("");
                 productAction.click(function () {
-                    create($("#product-name").val(), $("#product-origin").val());
+                    create($("#product-name").val(), $("#product-author").val(), $("#product-genre").val(), $("#product-status").val());
                     $('#productModal').modal('toggle');
                 });
             } else {
-                modal.find('.modal-title').text("Edit a bottle");
+                modal.find('.modal-title').text("Edit a Book");
                 modal.find('#product-name').val(button.data("name"));
-                modal.find('#product-origin').val(button.data("origin"));
+                modal.find('#product-author').val(button.data("author"));
+                modal.find('#product-genre').val(button.data("genre"));
+                modal.find('#product-status').val(button.data("status"));
                 productAction.click(function () {
-                    update(id, $("#product-name").val(), $("#product-origin").val());
+                    update(id, $("#product-name").val(), $("#product-author").val(), $("#product-genre").val(), $("#product-status").val());
                     $('#productModal').modal('toggle');
                 });
             }
@@ -136,7 +145,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
-                <h4 class="modal-title" id="productModalTitle">Add a bottle</h4>
+                <h4 class="modal-title" id="productModalTitle">Add a Book</h4>
             </div>
             <div class="modal-body">
                 <form>
@@ -145,8 +154,16 @@
                         <input type="text" class="form-control" id="product-name">
                     </div>
                     <div class="form-group">
-                        <label for="product-origin" class="control-label">Origin:</label>
-                        <input type="text" class="form-control" id="product-origin">
+                        <label for="product-author" class="control-label">Author:</label>
+                        <input type="text" class="form-control" id="product-author">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-genre" class="control-label">Genre:</label>
+                        <input type="text" class="form-control" id="product-genre">
+                    </div>
+                    <div class="form-group">
+                        <label for="product-status" class="control-label">Status:</label>
+                        <input type="text" class="form-control" id="product-status">
                     </div>
                 </form>
             </div>
