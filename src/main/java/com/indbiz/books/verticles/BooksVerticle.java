@@ -87,6 +87,7 @@ public class BooksVerticle extends AbstractVerticle {
 					else
 						future.fail(result.cause());
 				});
+		LOGGER.info("Server started at - http://localhost:"+PORT);
 	}
 
 	private <T> Handler<AsyncResult<T>> resultHandler(RoutingContext context, Consumer<T> consumer) {
