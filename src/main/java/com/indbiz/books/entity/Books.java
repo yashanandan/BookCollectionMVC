@@ -1,8 +1,12 @@
 package com.indbiz.books.entity;
 
+import java.util.concurrent.atomic.AtomicInteger;
+
 import io.vertx.core.json.JsonObject;
 
 public class Books {
+	
+	private static final AtomicInteger acc = new AtomicInteger(0);
 	
 	private int id;
 	private String name;
@@ -10,12 +14,27 @@ public class Books {
 	private String genre;
 	private String status;
 	
+	public Books(Books book) {
+		this.name = book.getName();
+		this.author = book.getAuthor();
+		this.genre = book.getGenre();
+		this.status = book.getStatus();
+		this.id = book.getId();
+	}
+	
+	public Books(int id, String name, String author, String genre, String status) {
+		this.name = name;
+		this.author = author;
+		this.genre = genre;
+		this.status = status;
+		this.id = id;
+	}
+	
 	public Books(String name, String author, String genre, String status) {
 		this.name = name;
 		this.author = author;
 		this.genre = genre;
 		this.status = status;
-		this.id = 0;
 	}
 	
 	public Books(JsonObject book) {
@@ -49,6 +68,19 @@ public class Books {
 		return this.id;
 	}
 	
+	public void setIncId() {
+	  this.id = acc.incrementAndGet();
+	}
+
+	public static int getIncId() {
+	  return acc.get();
+	}
+
+	public static void setIncIdWith(int n) {
+	  acc.set(n);
+	}
+	
+	
 	public void setName(String name) {
 		this.name = name;
 	}
@@ -79,6 +111,18 @@ public class Books {
 	
 	public String getStatus() {
 		return this.status;
+	}
+
+	public Books merge(Books updatedBook) {
+		return new Books(id,
+				getOrElse(updatedBook.name,name),
+				getOrElse(updatedBook.author,author),
+				getOrElse(updatedBook.genre,genre),
+				getOrElse(updatedBook.status,status));
+	}
+	
+	private <T> T getOrElse(T value, T defaultValue) {
+	    return value == null ? defaultValue : value;
 	}
 
 }

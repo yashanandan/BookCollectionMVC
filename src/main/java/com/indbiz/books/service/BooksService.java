@@ -12,7 +12,7 @@ public interface BooksService {
 	Future<Boolean> initData();
 	Future<Boolean> insert(Books books);
 	Future<List<Books>> getAll();
-	Future<Optional<Books>> getCertain(String todoID);
+	Future<Optional<Books>> getCertain(int bookId);
 	Future<Books> update(int id, Books newBook);
 	Future<Boolean> delete(int id);
 	
